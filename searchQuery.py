@@ -23,10 +23,16 @@ def preprocessQuery(df):
 
 if __name__ == "__main__":
     # Query="Happy and Songs,<p>"
+
+    d = [[1,2,3,4], [2,3,4], [3,4,5,6,7]]  
+    x=set.intersection(*[set(x) for x in d]) 
+
+    
+    print(list(x))
+
     Query="Unexpected Heartbreak,<p>"
     df = pd.DataFrame({"query":[Query]})
     queryList = preprocessQuery(df) 
-    # print(df)
     data_df = p.load_json("data/album_reviews2.json")
     data_df = p.preprocess(data_df)
 
@@ -41,16 +47,22 @@ if __name__ == "__main__":
             result.append(wordDocs)
 
     #need some kind of hardcoding
-    print(int(5/2)+1)
-    l=int(len(result)/2)
-    # print()
-    for i in range(l):
-        print(i)
-        l1,l2=result[:i+2]
+    print(result)
+    x=set.intersection(*[set(x) for x in result]) 
+
+    
+    print("Intersection :",list(x))
+
+     
+
+
+    # for i in range(2):
+    #     print(i)
+    #     l1,l2=result[:i+2]
         
-        print(l1)
-        print(l2)
-        res=[item for item in l1 if item in l2] 
-        print(res)
-        # think if one word is not present 
+    #     print(l1)
+    #     print(l2)
+    #     res=[item for item in l1 if item in l2] 
+    #     print("Intersection",res)
+    #     # think if one word is not present 
     
