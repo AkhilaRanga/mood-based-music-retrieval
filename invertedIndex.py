@@ -1,5 +1,6 @@
 # load tracks and inverted index and use the functions here
 import processData as p
+from pickle import load
 
 # load tracks dictionary
 def load_tracks():

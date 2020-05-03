@@ -83,7 +83,7 @@ def create_inverted_idx(df, rev_type):
     return inverted_index
 
 if __name__ == "__main__":
-    json file as a dataframe
+    # json file as a dataframe
     data_df = load_json("data/track_reviews.json")
     data_df = preprocess(data_df, "track") # "album" for album_reviews
     track_dict = create_track_dict(data_df, "track")
