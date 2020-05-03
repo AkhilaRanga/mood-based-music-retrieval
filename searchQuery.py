@@ -2,7 +2,8 @@ import pandas as pd
 from nlppreprocess import NLP
 import nltk  
 nltk.download('wordnet')
-import process_Data as p
+import processData as p
+import invertedIndex as inv
 # def search(String query):
 #     
 
@@ -22,36 +23,25 @@ def preprocessQuery(df):
     return tokens
 
 if __name__ == "__main__":
-    # Query="Happy and Songs,<p>"
-
-    d = [[1,2,3,4], [2,3,4], [3,4,5,6,7]]  
-    x=set.intersection(*[set(x) for x in d]) 
-
-    
-    print(list(x))
-
     Query="Unexpected Heartbreak,<p>"
+    # Query=input("Enter your query:")
     df = pd.DataFrame({"query":[Query]})
     queryList = preprocessQuery(df) 
-    data_df = p.load_json("data/album_reviews2.json")
-    data_df = p.preprocess(data_df)
-
-    inverted_index = p.create_inverted_idx(data_df)
+    inverted_index = inv.load_inverted_index()
+    track_list = inv.load_tracks()
     result=[]
     for word in queryList:
         wordDocs=[]
-        if word in inverted_index:
-            print(word)
+        if word in inverted_index.keys():
             wordDocs=inverted_index.get(word)
-            
             result.append(wordDocs)
 
-    #need some kind of hardcoding
-    print(result)
-    x=set.intersection(*[set(x) for x in result]) 
-
-    
-    print("Intersection :",list(x))
+    x=set.intersection(*[set(x) for x in result])
+    recommended_tracks = list()
+    for doc in list(x):
+        track, artist = inv.get_track_det(doc, track_list)
+        recommended_tracks.append(track)
+    print(recommended_tracks)
 
      
 
