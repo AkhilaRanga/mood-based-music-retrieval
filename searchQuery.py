@@ -1,11 +1,11 @@
 import pandas as pd
 from nlppreprocess import NLP
 import nltk  
-nltk.download('wordnet')
+nltk.download('wordnet', quiet=True)
+
 import processData as p
 import invertedIndex as inv
-# def search(String query):
-#     
+import ranker as r
 
 def stemming(text):
     w_tokenizer = nltk.tokenize.WhitespaceTokenizer()
@@ -23,12 +23,17 @@ def preprocessQuery(df):
     return tokens
 
 if __name__ == "__main__":
-    Query="Unexpected Heartbreak,<p>"
-    # Query=input("Enter your query:")
+    # Query="Unexpected Heartbreak,<p>"
+    Query=input("Enter your query:")
     df = pd.DataFrame({"query":[Query]})
     queryList = preprocessQuery(df) 
+    print("Query List: " + str(queryList))
     inverted_index = inv.load_inverted_index()
     track_list = inv.load_tracks()
+    stats = {
+        'inverted_index': inverted_index,
+        'track_list': track_list
+    }
     result=[]
     for word in queryList:
         wordDocs=[]
@@ -37,11 +42,22 @@ if __name__ == "__main__":
             result.append(wordDocs)
 
     x=set.intersection(*[set(x) for x in result])
-    recommended_tracks = list()
-    for doc in list(x):
-        track, artist = inv.get_track_det(doc, track_list)
-        recommended_tracks.append(track)
-    print(recommended_tracks)
+    ordered_results = r.rank_results(stats, queryList, list(x), ranker="pln")
+
+    print("-------------------------------")
+    for idx, val in enumerate(ordered_results):
+        track, artist = inv.get_track_det(val[1], track_list)
+        print(str(idx+1) + ': ' + 'Score: ' + str(val[0]))
+        print(track + " by " + artist)
+        print("")
+        if idx == 9:
+            break
+
+    # recommended_tracks = list()
+    # for doc in list(x):
+    #     track, artist = inv.get_track_det(doc, track_list)
+    #     recommended_tracks.append(track)
+    # print(recommended_tracks)
 
      
 
