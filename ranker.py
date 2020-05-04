@@ -41,7 +41,7 @@ def okapi_bm25(stats):
     c_wq = 1
     k_1 = 1.6 # 1.2 -> 2
     k_2 = 500 # 0 -> 1000
-    b = 0 # 0.75 -> 1.2
+    b = 0.975 # 0.75 -> 1.2
     n = stats['n']
     n_avg = stats['n_avg']
 
