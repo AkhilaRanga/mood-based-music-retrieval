@@ -1,7 +1,8 @@
 import pandas as pd
 from nlppreprocess import NLP
-import nltk  
-nltk.download('wordnet', quiet=True)
+import nltk
+#nltk.download('wordnet', quiet=True)
+from nltk.corpus import wordnet
 
 import processData as p
 import invertedIndex as inv
@@ -17,7 +18,7 @@ def preprocessQuery(df):
     df['query'] = df['query'].apply(nlp.process)
     df['query'] = df['query'].str.lower()
     # df['query'] = df.query.apply(stemming)
-    text=df.to_string(index = False, header=False) 
+    text=df.to_string(index = False, header=False)
     tokens=[]
     tokens=stemming(text)
     return tokens
@@ -25,8 +26,21 @@ def preprocessQuery(df):
 if __name__ == "__main__":
     # Query="Unexpected Heartbreak,<p>"
     Query=input("Enter your query:")
-    df = pd.DataFrame({"query":[Query]})
-    queryList = preprocessQuery(df) 
+    df1 = pd.DataFrame({"query":[Query]})
+    originalQueryList = preprocessQuery(df1)
+
+    Query = Query.split(" ")
+    syns = []
+    for word in Query:
+        for syn in wordnet.synsets(word):
+            for l in syn.lemmas():
+                syns.append(l.name())
+
+    synQuery = Query + syns
+
+    df = pd.DataFrame({"query": [synQuery]})
+    queryList = preprocessQuery(df)
+
     print("Query List: " + str(queryList))
     inverted_index = inv.load_inverted_index()
     track_list = inv.load_tracks()
@@ -42,7 +56,8 @@ if __name__ == "__main__":
             result.append(wordDocs)
 
     x=set.intersection(*[set(x) for x in result])
-    ordered_results = r.rank_results(stats, queryList, list(x), ranker="pln")
+    d = result[0].keys()
+    ordered_results = r.rank_results(stats, queryList, originalQueryList, list(d), ranker="pln")
 
     print("-------------------------------")
     for idx, val in enumerate(ordered_results):
@@ -59,16 +74,15 @@ if __name__ == "__main__":
     #     recommended_tracks.append(track)
     # print(recommended_tracks)
 
-     
+
 
 
     # for i in range(2):
     #     print(i)
     #     l1,l2=result[:i+2]
-        
+
     #     print(l1)
     #     print(l2)
-    #     res=[item for item in l1 if item in l2] 
+    #     res=[item for item in l1 if item in l2]
     #     print("Intersection",res)
-    #     # think if one word is not present 
-    
+    #     # think if one word is not present

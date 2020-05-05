@@ -1,7 +1,7 @@
 import numpy as np
 import invertedIndex as inv
 
-# Mood-based therefore assuming query is one word 
+# Mood-based therefore assuming query is one word
 
 # assuming stats object is a dictionary of terms with statistics regarding a term
 
@@ -45,13 +45,13 @@ def okapi_bm25(stats):
     n = stats['n']
     n_avg = stats['n_avg']
 
-    return np.log((N - df + 0.5) / (df + 0.5)) * ( ((k_1 + 1) * c_wd) / (k_1 * (1 - b + b * (n / n_avg))) ) * ( ((k_2 + 1) * (c_wq)) / (k_2 + c_wq) ) 
+    return np.log((N - df + 0.5) / (df + 0.5)) * ( ((k_1 + 1) * c_wd) / (k_1 * (1 - b + b * (n / n_avg))) ) * ( ((k_2 + 1) * (c_wq)) / (k_2 + c_wq) )
 
 
 # Take input for query
 # Using statistics rank the results and display in decreasing order
 
-def rank_results(stats, query_list, results, ranker="tfidf"):
+def rank_results(stats, query_list, original_query, results, ranker="tfidf"):
     rankers = {
         'tfidf': tfidf,
         'pln': pln,
@@ -74,9 +74,13 @@ def rank_results(stats, query_list, results, ranker="tfidf"):
                 'n_avg': n_avg
             }
 
-            score += rankers[ranker](parsed_stats)
+            if parsed_stats['tf'] ==0:
+                score += 0
+            elif word in original_query:
+                score += rankers[ranker](parsed_stats)
+            else:
+                score += rankers[ranker](parsed_stats)*0.75
 
         ranks.append((score, doc_id))
 
     return sorted(ranks, reverse=True, key=lambda x: x[0])
-            

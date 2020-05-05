@@ -24,7 +24,10 @@ def get_track_det(doc_index, load_tracks):
 
 # get term frequency of a word in a document(track/album review)
 def term_freq(word, doc_index, inv_idx):
-    return inv_idx[word][doc_index]
+    try:
+        return inv_idx[word][doc_index]
+    except:
+        return 0
 
 # get number of documents(tracks/albums)
 def num_doc(load_tracks):
