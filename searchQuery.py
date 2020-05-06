@@ -53,8 +53,8 @@ if __name__ == "__main__":
     }
     # lyrics
     stats_lyrics = {
-        'inverted_index_l': inverted_index,
-        'track_list_l': track_list
+        'inverted_index': inverted_index_l,
+        'track_list': track_list_l
     }
     result=[]
     for word in queryList:
