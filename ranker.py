@@ -51,7 +51,7 @@ def okapi_bm25(stats):
 # Take input for query
 # Using statistics rank the results and display in decreasing order
 
-def rank_results(stats, query_list, original_query, results, ranker="tfidf"):
+def rank_results(stats, query_list, original_query, results, ranker="tfidf", discount_factor=0.75):
     rankers = {
         'tfidf': tfidf,
         'pln': pln,
@@ -63,24 +63,29 @@ def rank_results(stats, query_list, original_query, results, ranker="tfidf"):
     for doc_id in results:
 
         score = 0
+        for group in query_list: # group is original word and its synonyms
+            for word in group:
 
-        for word in query_list:
-            n_avg = sum([inv.doc_length(i, stats['track_list']) for i in results]) / inv.doc_freq(word, stats['inverted_index'])
-            parsed_stats = {
-                'tf': inv.term_freq(word, doc_id, stats['inverted_index']),
-                'N': inv.num_doc(stats['track_list']),
-                'df': inv.doc_freq(word, stats['inverted_index']),
-                'n': inv.doc_length(doc_id, stats['track_list']),
-                'n_avg': n_avg
-            }
+                if word not in stats['inverted_index'].keys():
+                    continue
 
-            if parsed_stats['tf'] ==0:
-                score += 0
-            elif word in original_query:
-                score += rankers[ranker](parsed_stats)
-            else:
-                score += rankers[ranker](parsed_stats)*0.75
+                n_avg = sum([inv.doc_length(i, stats['track_list']) for i in results]) / inv.doc_freq(word, stats['inverted_index'])
+
+                parsed_stats = {
+                    'tf': inv.term_freq(word, doc_id, stats['inverted_index']),
+                    'N': inv.num_doc(stats['track_list']),
+                    'df': inv.doc_freq(word, stats['inverted_index']),
+                    'n': inv.doc_length(doc_id, stats['track_list']),
+                    'n_avg': n_avg
+                }
+
+                if parsed_stats['tf'] == 0:
+                    score += 0
+                elif word in original_query:
+                    score += rankers[ranker](parsed_stats)
+                else:
+                    score += rankers[ranker](parsed_stats)*discount_factor
 
         ranks.append((score, doc_id))
 
-    return sorted(ranks, reverse=True, key=lambda x: x[0])
+    return sorted(ranks, reverse=True, key=lambda x: x[1]) # return sorted by track id for interpolation
