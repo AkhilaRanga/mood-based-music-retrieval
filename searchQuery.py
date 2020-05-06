@@ -42,11 +42,19 @@ if __name__ == "__main__":
     queryList = preprocessQuery(df)
 
     print("Query List: " + str(queryList))
-    inverted_index = inv.load_inverted_index()
-    track_list = inv.load_tracks()
+    inverted_index = inv.load_inverted_index('inverted_index.pkl')
+    inverted_index_l = inv.load_inverted_index('inverted_index_lyric.pkl')
+    track_list = inv.load_tracks('track_dick.pkl')
+    track_list_l = inv.load_tracks('lyric_dick.pkl')
+    # reviews
     stats = {
         'inverted_index': inverted_index,
         'track_list': track_list
+    }
+    # lyrics
+    stats_lyrics = {
+        'inverted_index_l': inverted_index,
+        'track_list_l': track_list
     }
     result=[]
     for word in queryList:

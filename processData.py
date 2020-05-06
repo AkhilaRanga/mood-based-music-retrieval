@@ -17,79 +17,71 @@ def stemming(text):
     return [stemmer.stem(word) for word in w_tokenizer.tokenize(text)]
 
 # preprocess data
-def preprocess(df, rev_type):
+def preprocess(df):
+    for index, row in df.iterrows():
+        if(row['artist-name']!=None):
+            row['body'] = row['body'].replace(row['artist-name'], '')
+        row['body'] = row['body'].replace(row['track-name'], '')
     nlp = NLP()
-    if(rev_type=="album"):
-        df['abstract'] = df['abstract'].apply(nlp.process)
-        df['abstract'] = df['abstract'].str.lower()
-        df['abstract'] = df.abstract.apply(stemming)
     df['body'] = df['body'].apply(nlp.process)
     df['body'] = df['body'].str.lower()
     df['body'] = df.body.apply(stemming)
+    df['lyrics'] = df['lyrics'].apply(nlp.process)
+    df['lyrics'] = df['lyrics'].str.lower()
+    df['lyrics'] = df.lyrics.apply(stemming)
     return df
 
 # creating a dictionary of tracks 
-# Dictionary maps index to the track/album and contains length of track/album review
-# Dictionary format -- {track/album index : [ length of body and/or abstract, track/album name, artist name] }
-def create_track_dict(df, rev_type):
+# Dictionary maps index to the track and contains length of track review/lyrics
+# Dictionary format -- {track index : [ length of body, track name, artist name] }
+# Dictionary format -- {track index : [ length of lyrics, track name, artist name] }
+def create_track_dict(df):
     track_dict = {}
+    track_lyric_dict = {}
     for index, row in df.iterrows():
+        # track critic reviews dict
         track_dict[index] = list()
-        if(rev_type=="track"):
-            track_dict[index].append(len(row['body']))
-            track_dict[index].append(row['track-name'])
-        else:
-            track_dict[index].append(len(row['body'])+len(row['abstract']))
-            track_dict[index].append(row['album-name'])
+        track_dict[index].append(len(row['body']))
+        track_dict[index].append(row['track-name'])
         track_dict[index].append(row['artist-name'])
-    return track_dict
+        # track lyrics dict
+        track_lyric_dict[index] = list()
+        track_lyric_dict[index].append(len(row['lyrics']))
+        track_lyric_dict[index].append(row['track-name'])
+        track_lyric_dict[index].append(row['artist-name'])
+    return track_dict, track_lyric_dict
 
 # creating inverted index
-# inverted index format -- { word : [ {track/album index : word_freq}, .. ] }
-def create_inverted_idx(df, rev_type):
+# inverted index format -- { word : [ {track index : word_freq}, .. ] }
+def create_inverted_idx(df, column):
     inverted_index = {}
     # each row of dataframe is a document
     for index, row in df.iterrows():
-        # only album reviews have abstract
-        # abstract
-        if(rev_type=="album"):
-            abs_set = set(word for word in row['abstract'])
-            abs_dict = {}
-            for word in row['abstract']:
-                if(word not in abs_dict):
-                    abs_dict[word] = 1
-                else:
-                    abs_dict[word] += 1
-            for word in abs_dict:
-                if word not in inverted_index:
-                    inverted_index[word] = {}
-                    inverted_index[word][index] = abs_dict[word]
-                else:
-                    inverted_index[word][index] = abs_dict[word]
-        
-        # body
-        body_dict = {}
-        for word in row['body']:
-            if(word not in body_dict):
-                body_dict[word] = 1
+        # body/lyrics
+        text_dict = {}
+        for word in row[column]:
+            if(word not in text_dict):
+                text_dict[word] = 1
             else:
-                body_dict[word] += 1
-        for word in body_dict:
+                text_dict[word] += 1
+        for word in text_dict:
             if word not in inverted_index:
                 inverted_index[word] = {}
-                inverted_index[word][index] = body_dict[word]
+                inverted_index[word][index] = text_dict[word]
             else:
-                inverted_index[word][index] = body_dict[word]
+                inverted_index[word][index] = text_dict[word]
     return inverted_index
 
 if __name__ == "__main__":
     # json file as a dataframe
-    data_df = load_json("data/track_reviews.json")
-    data_df = preprocess(data_df, "track") # "album" for album_reviews
-    track_dict = create_track_dict(data_df, "track")
+    tracks_lyrics_df = load_json("data/track_review_with_lyrics.json")
+    tracks_lyrics_df = preprocess(tracks_lyrics_df)
+    track_dict, lyric_dict = create_track_dict(tracks_lyrics_df)
     dump(track_dict, open('data/track_dict.pkl', 'wb'))
+    dump(lyric_dict, open('data/lyric_dict.pkl', 'wb'))
     print("----done----")
-    inverted_index = create_inverted_idx(data_df, "track") # "album" for album_reviews
+    inverted_index = create_inverted_idx(tracks_lyrics_df, 'body')
+    inverted_index_lyric = create_inverted_idx(tracks_lyrics_df, 'lyrics')
     dump(inverted_index, open('data/inverted_index.pkl', 'wb'))
+    dump(inverted_index_lyric, open('data/inverted_index_lyric.pkl', 'wb'))
     print("----done----")
-    # inv = load( open('data/inverted_index.pkl', 'rb') )

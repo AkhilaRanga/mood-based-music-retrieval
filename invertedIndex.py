@@ -3,12 +3,12 @@ import processData as p
 from pickle import load
 
 # load tracks dictionary
-def load_tracks():
-    return load( open('data/track_dict.pkl', 'rb') )
+def load_tracks(filename):
+    return load( open('data/'+filename, 'rb') )
 
 # load inverted index
-def load_inverted_index():
-    return load( open('data/inverted_index.pkl', 'rb') )
+def load_inverted_index(filename):
+    return load( open('data/'+filename, 'rb') )
 
 # get length of a document(track/album review) given document index
 def doc_length(doc_index, load_tracks):
